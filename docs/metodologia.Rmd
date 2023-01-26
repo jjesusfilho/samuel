@@ -1,0 +1,152 @@
+---
+title: "metodologia"
+output: pdf_document
+bibliography: biblio.bib
+nocite: |
+    @dplyr, @ggplot2, @rmarkdown1, @stringr, @RPostgres, @pander, @httr, @xml2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning= FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(pander)
+library(JurisVis)
+library(broom)
+data <- readRDS("base_final_adi.rds")
+tidy <- readRDS("resultado_regressao_logistica_adi.rds")
+modelo <- readRDS("modelo_adi.rds")
+amostra <- readRDS("amostra_adi.rds")
+panderOptions('table.alignment.default', function(df)
+    ifelse(sapply(df, is.numeric), 'right', 'left'))
+panderOptions('table.split.table', Inf)
+panderOptions('big.mark', ",")
+panderOptions('keep.trailing.zeros', TRUE)
+```
+
+# Introdução
+
+A presente pesquisa realizou o levantamento das decisões do Supremo Tribunal Federal que refletem as relações interinstituicionais entre a Suprema Corte e o Congresso Nacional. Para tanto, a pesquisa percorreu uma série de etapas que serão pormenorizadas abaixo. Em suma, iniciou-se com a colocação do problema da pesquisa, o qual for convertido em hipóteses passíveis de verificação empírica e posterior operacionalização dessas hipóteses em variáveis mensuráveis.
+
+Em seguida foi realizada uma análise de viabilidade da pesquisa. Procedeu-se então à coleta automatizada de todas as decisões do STJ sobre Mandando de Segurança (MS) e Acão Direita de Inconstitucionalidade (ADI). Essas decisões foram submetidas a filtros para manter somente aquelas que são pertinentes. Foram criadas novas variáveis a partir de extrações automatizadas e manuais. Por fim, realizaram-se análises exploratórias e inferencias.
+
+Este texto apresenta os resultados parciais da pesquisa. Foi realizada a análise das ADIs para saber quais os temas levados ao STF têm maior probabilidade de obter uma decisão de mérito. Os temas foram divididos direitos sociais, estado e "não estado".
+
+## Problema da Pesquisa
+
+Na literatura a respeito das eventuais influências do STF sobre o legislativo apontam-se com frequência elementos subjetivos, tais como a figura do ministro, o presidente da república que indicou o ministro, a faculdade onde o ministro estudou, o gênero.
+
+A presente pesquisa parte das seguintes perguntas: se é possível identificar elementos objetivos do processo legislativo federal que ensejam maior intervenção do poder judiciário. O propósito da pesquisa é analisar os processos legislativos em trâmite no Congresso Nacional que foram submetidos ao crivo do Supremo Tribunal Federal via mandado de segurança ou ação direta de inconstitucionalide, a fim de verificar se há elementos objetivos, para além dos elementos subjetivos acima mencionados, que permitem vislumbrar ou mesmo prever o desfecho processual do STF.
+
+## Hipóteses
+
+A pesquisa busca verificar duas hipóteses. A primeira delas consiste em sabe se há influência das decisões do STF sobre o processo legislativo e quais os elementos que ensejam tal influência. A segunda saber se o STF prefere decidir temas que alegam violação de direito de estado, e.g, direito administrativo, direito tributário, em detrimento de direitos sociais.
+
+## Viabilidade
+
+A análise de viabilidade visa verificar se os dados de interesse existem e, se existem, são coletáveis. Se podem ser coletatados, verifica qual a qualidade desses dados. Uma busca por ações nas classes processuais escolhidas indicou que havia um número significativo de ADIs e de MSs para questionar a constitucionalidade de projetos legislativos. Embora essa análise não assegure a consecução do projeto, ela é importante para tomar uma decisão acerca da sua continuidade.
+
+## Coleta
+
+Para a coleta dos dados processuais do STF foi utilizada a técnica de raspagem de dados (webscraping) por meio do ambiente de programação R[@base] e o pacote de funções STF[@stf] construído para coletar, organizar, limpar e transformar os dados processuais do Supremo Tribunal Federal.
+
+O STF não disponibiliza todas as decisões na busca jurisprudencial. Para baixar todos os dados, foi necessário encontrar um número identificador (incidente) e baixar todas os processos para posteriormente realizar os filtros.
+
+Inicialmente, foram baixadas todos os dados processuais de capa das ADIs e dos MSs, bem como, o inteiro teor das decisões. A tabela abaixo mostra os dados que foram baixados:
+
+Tabela 1 - Dados de capa coletados dos processos do STF
+
++-----------------+-------------------------------------------------------------------+
+| Coluna          | Descrição                                                         |
++=================+===================================================================+
+| doc_id          | Identificação do documento do inteiro teor                        |
++-----------------+-------------------------------------------------------------------+
+| incidente       | Identificador do processo                                         |
++-----------------+-------------------------------------------------------------------+
+| data_julgamento | Data da decisão                                                   |
++-----------------+-------------------------------------------------------------------+
+| classe          | Classe processual                                                 |
++-----------------+-------------------------------------------------------------------+
+| numero          | Número do processo                                                |
++-----------------+-------------------------------------------------------------------+
+| numero_unico    | Número do processo conforme tabelas processuais unificadas do CNJ |
++-----------------+-------------------------------------------------------------------+
+| relator_atual   | Relator no ato da decisão                                         |
++-----------------+-------------------------------------------------------------------+
+| assunto1        | Três principais assuntos                                          |
++-----------------+-------------------------------------------------------------------+
+| assunto2        | Três assuntos secundários                                         |
++-----------------+-------------------------------------------------------------------+
+| assunto3        | Três assuntos terciários                                          |
++-----------------+-------------------------------------------------------------------+
+| data_protocolo  | Data entrada do processo no STF                                   |
++-----------------+-------------------------------------------------------------------+
+| orgao_origem    | Tribunal de origem                                                |
++-----------------+-------------------------------------------------------------------+
+| origem          | Unidade federativa do tribunal de origem                          |
++-----------------+-------------------------------------------------------------------+
+| numero_origem   | Número do processo no tribunal de origem                          |
++-----------------+-------------------------------------------------------------------+
+| procedencia     | Último tribunal antes de alcançar o STF ou o próprio STF          |
++-----------------+-------------------------------------------------------------------+
+| parte           | Nomes das partes do processo                                      |
++-----------------+-------------------------------------------------------------------+
+| julgado         | Inteiro teor da decisão                                           |
++-----------------+-------------------------------------------------------------------+
+
+## Filtros
+
+Para delimitar o número de julgados dentro do recorte definido no desenho, foram aplicados filtros aos julgados. Primeiramente foi aplicado o filtro temporal para limitar somente aos julgados com data de decisão a partir de 01 de janeiro de 2009. Além disso, tanto para as ADIs quanto para os MSs, foram mantidos somente os julgados com origem no próprio STF ou no Distrito Federal. A razão para tal é que havia o interesse apenas em ações que questionavam o processo legislativo federal, excluindo assim, ações sobre processos legislativos estaduais, municipais ou atos de governadores e prefeitos. Quando aos MSs, um filtro a mais foi incluído, para manter somente ações contra atos de senadores e deputados federais.
+
+Uma inspeção de uma amostra dos julgados revelou que era necessário aplicar novos filtros para excluir os embargos de declaração e os amici curiae.
+
+Todas essas exclusões se deram de forma automatizada, restando ao final delas 776 ADIs e 128 MSs. O passo seguinte foi realizar a leitura uma a uma das decisões para definir novas exclusões e classificá-las conforme o desenho do projeto.
+
+## Transformação
+
+As ADIs foram então separadas dos MSs para leitura humana de cada grupo das classes processuais. Para esta fase da pesquisa, realizou-se apenas a análise das primeiras. Do conjunto das 776 ADIs, 448 foram excluídas apó a leitura porque não eram pertinentes ao objeto da pesquisa. As demais foram classificadas primeiramente conforme três grupos. De um lado aquelas que tratam de temas de governo ou estado, tais como direito administrativo, direito tributário e direito eleitoral e, de outro, aqueles que tratam de direitos sociais. Um grupo que não pertencia a nenhuma dessas categorias foi chamado de "não estado". Examplos típicos são direito da criança e adolescente e processo civil.
+
+O desfecho processual também foi classificado como se houve decisão de mérito ou não. Estas últimas são aquelas em que houve perda do objeto ou por alguma outra razão, o STF deixou de decidir o mérito. Se a manifestação do STF foi sobre o mérito, o processo foi categorizado como "sim".
+
+Além disso, partiu-se do pressuposto de que as duas turmas decidem diferentemente. Assim, foi mantida uma coluna com a turma.
+
+## Análise exploratória
+
+O gráfico abaixo mostra as frequências dos desfechos processuais conforme o órgão julgador (turma) e o assunto. Visualmente, há diferenças quando o tema é classificado como direitos sociais ou como governo/estado. Estes são menos suscetíveis de não serem julgados pelo STF.
+
+```{r}
+gg_decisao(data,
+           title = "Gráfico 1 - Desfecho processual conforme o assunto e a turma do STF",
+           ordered = FALSE,
+           x = assunto,
+           facet = turma,
+           fill = houve_decisao,
+           x_label = "Assunto",
+           legend = "Houve decisão?",
+           caption = "Fonte: STF"
+           )
+```
+
+## Análise inferencial
+
+Para a análise inferencial, optou-se pela regressão logística, tendo a variável "houve_decisão" como resposta e assunto e turma como variáveis explicativas. A tabela abaixo mostra os resultados da regressão logística:
+
+```{r}
+pander(tidy)
+```
+
+Os resultados mostram que há evidente diferença entre a resposta do Supremo para assuntos de estado em relação a direitos sociais, p-value < 0.05. Por outro lado, as turmas não parecem diferir entre si, p-value > 0.05.
+
+O cálculo das razões de chance para assunto estado em relação à direitos sociais, $ exp(0.6636) = 1,94 $ revela que temas de governo e ou estado têm probabilidade quase duas vezes maior do que direitos sociais para prosseguir até a decisão de mérito.
+
+Por fim, a tabela abaixo apresenta uma amostra com decisões do STF e respectivas predições em termos de probabilidade, o que confirma a diferença em termos de chances de haver julgamento de mérito para temas de estado em detrimento a temas de direitos sociais.
+
+```{r}
+pander(amostra)
+```
+
+## Referências

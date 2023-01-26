@@ -1,0 +1,241 @@
+---
+title: "graficos"
+author: "José de Jesus Filho"
+date: "7/13/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.width = 8,
+                      fig.height = 5)
+```
+
+
+```{r}
+library(JurisVis)
+library(tidyverse)
+df <- readRDS("base_final.rds")
+df <- df %>% 
+   mutate(desfecho = factor(desfecho, levels = c("não decisão","decisão")))
+```
+
+
+```{r}
+df %>% 
+gg_decisao(
+  title = "Gráfico 1 - Trâmite do STF conforme o argumento e a classe processual",
+  x = material_formal,
+  facet = classe,
+  fill = desfecho,
+  ordered = FALSE,
+  x_label = "Argumento",
+  y_label = "Número de decisões",
+  legend = "Trâmite",
+  caption = "Fonte: STF"
+) +
+  theme_bw()
+
+
+```
+
+
+```{r}
+ df %>% 
+gg_decisao(
+  title = "Gráfico 2 - Trâmite do STF Assunto conforme o desfecho e a classe \nprocessual",
+  x = assunto,
+  facet = classe,
+  fill = desfecho,
+  ordered = FALSE,
+  x_label = "Assunto",
+  y_label = "Número de decisões",
+  legend = "Trâmite",
+  caption = "Fonte: STF"
+) +
+  theme_bw()
+
+
+```
+
+```{r}
+df %>% 
+gg_decisao(
+  title = "Gráfico 3 - Trâmite do STF conforme o relator e a classe \nprocessual",
+  x = relator,
+  facet = classe,
+  fill = desfecho,
+  ordered = TRUE,
+  x_label = "Relator",
+  y_label = "Número de decisões",
+  legend = "Trâmite",
+  caption = "Fonte: STF"
+) +
+  theme_bw()
+
+
+```
+
+
+```{r}
+df %>% 
+gg_decisao(
+  title = "Gráfico 4 - Trâmite do STF conforme a turma e a classe processual",
+  x = turma,
+  facet = classe,
+  fill = desfecho,
+  ordered = TRUE,
+  x_label = "Turma",
+  y_label = "Número de decisões",
+  legend = "Trâmite",
+  caption = "Fonte: STF"
+) +
+  theme_bw()
+
+
+```
+
+```{r}
+df %>% 
+gg_decisao(
+  title = "Gráfico 5 - Trâmite do STF conforme o ato questionado e a classe processual",
+  x = ato,
+  facet = classe,
+  fill = desfecho,
+  ordered = FALSE,
+  x_label = "Ato",
+  y_label = "Número de decisões",
+  legend = "Trâmite",
+  caption = "Fonte: STF"
+) +
+  theme_bw()
+
+
+```
+
+```{r}
+df %>% 
+  rename(governo = governo1) %>% 
+gg_decisao(
+  title = "Gráfico 6 - Trâmite do STF conforme o governo e a classe processual",
+  x = governo,
+  facet = classe,
+  fill = desfecho,
+  ordered = FALSE,
+  x_label = "Governo",
+  y_label = "Número de decisões",
+  legend = "Trâmite",
+  caption = "Fonte: STF"
+) +
+  theme_bw()
+
+
+```
+
+```{r}
+df %>% 
+  filter(desfecho == "decisão") %>% 
+gg_decisao(
+  title = "Gráfico 7 - Decisão do STF conforme o argumento e a classe \nprocessual",
+  x = material_formal,
+  facet = classe,
+  fill = decisao,
+  ordered = FALSE,
+  x_label = "Argumento",
+  y_label = "Número de decisões",
+  legend = "Decisão",
+  caption = "Fonte: STF"
+) +
+  theme_bw()
+
+
+```
+
+```{r}
+df %>% 
+  filter(desfecho == "decisão") %>% 
+gg_decisao(
+  title = "Gráfico 8 - Decisão do STF conforme o assunto e a classe \nprocessual",
+  x = assunto,
+  facet = classe,
+  fill = decisao,
+  ordered = FALSE,
+  x_label = "Assunto",
+  y_label = "Número de decisões",
+  legend = "Decisão",
+  caption = "Fonte: STF"
+) + 
+  theme_bw()
+```
+
+```{r}
+ df %>% 
+  filter(desfecho == "decisão") %>% 
+gg_decisao(
+  title = "Gráfico 9 - Decisão do STF conforme o relator e a classe \nprocessual",
+  x = relator,
+  facet = classe,
+  fill = decisao,
+  ordered = TRUE,
+  x_label = "Relator",
+  y_label = "Número de decisões",
+  legend = "Decisão",
+  caption = "Fonte: STF"
+) +
+  theme_bw()
+```
+
+```{r}
+ df %>% 
+  filter(desfecho == "decisão") %>% 
+gg_decisao(
+  title = "Gráfico 10 - Decisão do STF conforme a turma e a classe processual",
+  x = turma,
+  facet = classe,
+  fill = decisao,
+  ordered = TRUE,
+  x_label = "Turma",
+  y_label = "Número de decisões",
+  legend = "Decisão",
+  caption = "Fonte: STF"
+) + 
+  theme_bw()
+```
+
+```{r}
+ df %>% 
+  filter(desfecho == "decisão") %>% 
+gg_decisao(
+  title = "Gráfico 11 - Decisão do STF conforme o ato e a classe processual",
+  x = ato,
+  facet = classe,
+  fill = decisao,
+  ordered = FALSE,
+  x_label = "Ato",
+  y_label = "Número de decisões",
+  legend = "Decisão",
+  caption = "Fonte: STF"
+) + 
+  theme_bw()
+```
+
+```{r}
+ df %>% 
+  filter(desfecho == "decisão") %>% 
+  rename(governo = governo1) %>% 
+gg_decisao(
+  title = "Gráfico 12 - Decisão do STF conforme o governo e a classe processual",
+  x = governo,
+  facet = classe,
+  fill = decisao,
+  ordered = FALSE,
+  x_label = "Governo",
+  y_label = "Número de decisões",
+  legend = "Decisão",
+  caption = "Fonte: STF"
+) + 
+  theme_bw()
+```
+

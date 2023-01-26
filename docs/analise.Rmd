@@ -1,0 +1,395 @@
+---
+title: "Análise"
+author: "José de Jesus Filho"
+date: "7/12/2021"
+output: word_document
+bibliography: biblio.bib
+csl: abnt.csl
+nocite: |
+    @dplyr, @ggplot2, @rmarkdown1, @stringr, @RPostgres, @pander, @httr, @xml2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message  = FALSE,
+                      comment=NA,
+                      fig.width = 9, 
+                      fig.height = 7)
+options(scipen = 20, digits = 3)
+```
+
+
+```{r}
+library(tidyverse)
+library(flextable)
+library(officedown)
+library(officer)
+library(sampleSelection)
+
+# set_flextable_defaults(
+#   font.family = "Arial", 
+#   font.size = 12,
+#   font.color = "black",
+#   padding = 5,
+#   table.layout = "autofit",
+#   digits = 3,
+#   big.mark = "",
+#   decimal.mark = ",",
+#   theme_fun = "theme_vanilla"
+#   )
+FitFlextableToPage <- function(ft, pgwidth = 6){
+
+  ft_out <- ft %>% 
+     autofit()
+
+  ft_out <- width(ft_out, width = dim(ft_out)$widths*pgwidth /(flextable_dim(ft_out)$widths))
+  return(ft_out)
+}
+
+#scale_colour_continuous <- scale_colour_viridis_c
+#scale_colour_discrete   <- scale_colour_viridis_d
+#scale_colour_binned     <- scale_colour_viridis_b
+#scale_fill_continuous <- scale_fill_viridis_c
+#scale_fill_discrete   <- scale_fill_viridis_d
+#scale_fill_binned     <- scale_fill_viridis_b
+
+```
+
+```{r}
+df <- readRDS("base_final.rds")
+modelo <- readRDS("modelo.rds")
+```
+
+A base final terminou em 355 observações com as seguintes características:
+
+### Distribuição das classes
+
+```{r}
+df %>% 
+  count(classe, sort = TRUE) %>% 
+  flextable() %>% 
+  FitFlextableToPage()
+```
+
+### Distribuição do desfecho
+
+```{r}
+df %>% 
+   count(desfecho, sort = TRUE) %>% 
+   flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Desfecho conforme a classe
+```{r}
+df %>% 
+   count(classe, desfecho, sort = TRUE ) %>% 
+   flextable() %>% 
+  FitFlextableToPage()
+```
+
+
+### Distribuião dentre aquelas que têm decisão de mérito
+
+```{r}
+df %>% 
+   filter(desfecho == "decisão") %>% 
+    count(decisao) %>% 
+    flextable() %>% 
+  FitFlextableToPage()
+```
+
+```{r}
+df %>% 
+  filter(desfecho == "decisão") %>% 
+  count(classe, decisao, sort = TRUE) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+```{r}
+df %>% 
+  count(assunto, sort = TRUE) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+```{r}
+df %>% 
+  count(assunto, desfecho, sort = TRUE) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+### Distribuição conforme a classe e o assunto em relação ao seguimento do processo
+
+```{r}
+df %>% 
+  count(classe, assunto, desfecho) %>% 
+  flextable() %>% 
+  FitFlextableToPage()
+```
+
+### Distribuição conforme a classe e o assunto em decisões de mérito
+```{r}
+df %>% 
+  filter(desfecho == "decisão") %>% 
+  count(classe, assunto, decisao) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o relator
+
+```{r}
+df %>% 
+   count(relator, sort = TRUE) %>% 
+   flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o relator o seguimento do processo
+
+
+```{r}
+df %>% 
+  count(relator, desfecho) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+### Julgados conforme o relator e a decisão de mérito
+
+```{r}
+
+df %>% 
+  filter(desfecho == "decisão") %>% 
+  count(relator, decisao) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+
+```
+
+### Julgados conforme o argumento
+
+```{r}
+df %>% 
+   count(material_formal, sort = TRUE) %>% 
+   flextable()  %>% 
+  FitFlextableToPage()
+```
+### Julgados conforme o argumento e o seguimento
+
+```{r}
+df %>% 
+   count(material_formal, desfecho ) %>% 
+   flextable() %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o argumento, a classe e o seguimento
+
+```{r}
+df %>% 
+  count(material_formal, classe, desfecho) %>% 
+  flextable() %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o argumento em decisões de mérito
+
+```{r}
+df %>% 
+  filter(desfecho == "decisão") %>% 
+  count(material_formal, decisao) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o seguimento, a classe em decisão de mérito
+
+
+```{r}
+df %>% 
+  filter(desfecho == "decisão") %>% 
+  count(material_formal, classe, decisao) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme a turma
+
+```{r}
+df %>% 
+   count(turma, sort = TRUE) %>% 
+   flextable()  %>% 
+  FitFlextableToPage()
+```
+### Julgados conforme a turma e o seguimento
+
+```{r}
+df %>% 
+  count(turma, desfecho) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+
+### Julgados conforme a turma e a classe
+
+
+```{r}
+df %>% 
+  count(turma,classe) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+### Julgados conforme a turma, a classe e o seguimento
+
+```{r}
+df %>% 
+  count(turma, classe, desfecho) %>% 
+  flextable() %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme a turma e a decisão de mérito
+
+```{r}
+df %>% 
+  filter(desfecho == "decisão") %>% 
+  count(turma, decisao) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o ato
+
+```{r}
+df %>% 
+  count(ato, sort = TRUE) %>%
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o ato e o seguimento
+
+```{r}
+df %>% 
+  count(ato, desfecho) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+
+```
+
+### Julgados conforme o ato e a classe
+
+
+```{r}
+df %>% 
+  count(ato, classe) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+### Julgados conforme o ato e o seguimento
+```{r}
+df %>% 
+  count(ato, desfecho) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o ato, a classe e o seguimento
+
+```{r}
+df %>% 
+  count(classe, ato, desfecho) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o ato e a decisão de mérito
+
+```{r}
+df %>% 
+  filter(desfecho == "decisão") %>% 
+  count(ato, decisao) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+
+```
+
+### Julgados conforme o ato, a classe e a decisão de mérito
+
+```{r}
+df %>% 
+  filter(desfecho == "decisão") %>% 
+  count(classe, ato, decisao) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o governo
+```{r}
+df %>% 
+  rename(governo = governo1) %>% 
+  count(governo) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+
+```
+### Julgados conforme o governo e o seguimento
+
+```{r}
+df %>% 
+  rename(governo = governo1) %>% 
+  count(governo, desfecho) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o governo, a classe e o seguimento
+
+```{r}
+df %>% 
+  rename(governo = governo1) %>% 
+  count(classe, governo, desfecho) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+### Julgados conforme o governo e a decisão de mérito
+
+```{r}
+df %>% 
+  rename(governo = governo1) %>% 
+  filter(desfecho == "decisão") %>% 
+  count(governo,decisao) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+### Julgados conforme o governo, a classe e a decisão de mérito
+
+```{r}
+df %>% 
+  rename(governo = governo1) %>% 
+  filter(desfecho == "decisão") %>% 
+  count(classe, governo, decisao) %>% 
+  flextable()  %>% 
+  FitFlextableToPage()
+```
+
+## Análise inferencial
+
+Para a análise inferencial, foi usado o modelo de regressão binomial. Acontece que apenas parcela dos processos segue até a decisão de mérito, a outra extingue-se sem apreciação por várias razões, especialmente por perda de objeto. Partindo-se do  pressuposto de que a perda de objeto não ocorre aleatoriamente, mas ela é sistemática, ao analisar os dados que chegeram ao mérito sem considerar que muitos não são julgados por força de mecanismos que podem ser explicados, os resultados podem estar enviesados.
+
+James Heckman [-@heckman1976common] propôs um modelo de seleção para corrigir o viés no modelo de regressão com dados faltantes não aleatórios na variável resposta. O método proposto vislumbra o modelo em duas partes. Uma primeira que verifica o quão propenso processo está para ser julgados, i.e., calcula-se as probabilidades  de um processo seguir adiante e de não seguir. Esses resultados então condicionam o resultado do segundo modelo que observa o mérito [@enders2010applied], na medida em que o modelo de dados faltantes (modelo de seleção) ajusta para o viés no modelo de reultado. Dessa forma, optou-se por rodar o modelo proposto por Heckman, ou seja, dois modelos rodados. Para tanto, usou-se o pacote SampleSelection [@sampleSelection] escrito em R [@base]. Abaixo o sumário dos resultados.
+
+
+```{r}
+modelo
+```
+
+
+# Referências
+
+
